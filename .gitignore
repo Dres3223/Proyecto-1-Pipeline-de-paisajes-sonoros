@@ -1,0 +1,15 @@
+# Datos: nunca se suben al repositorio (pesan mucho y tienen licencia propia)
+data/
+
+# Entorno de Python
+.venv/
+__pycache__/
+*.pyc
+
+# Credenciales
+kaggle.json
+access_token
+.env
+
+# macOS
+.DS_Store
