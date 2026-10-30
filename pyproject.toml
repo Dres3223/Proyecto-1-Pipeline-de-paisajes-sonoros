@@ -3,6 +3,8 @@ name = "soundscape-data-pipeline"
 version = "0.1.0"
 description = "Data pipeline for field recordings from El Silencio Nature Reserve (Colombia)."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Rodrigo Andrés Martínez" }]
 requires-python = ">=3.12"
 dependencies = []
