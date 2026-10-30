@@ -115,7 +115,8 @@ Columns, types and units: [docs/features_schema.md](docs/features_schema.md).
 ```bash
 docker compose exec postgres psql -U soundscape -d soundscape \
   -c "SELECT site_code, recorded_at, duration_s FROM raw.recordings ORDER BY recorded_at LIMIT 5;"
-uv run pytest   # run the tests
+uv run pytest                        # all tests, with a coverage report
+uv run pytest -m "not integration"   # only the fast tests (no services needed)
 ```
 
 ## License
