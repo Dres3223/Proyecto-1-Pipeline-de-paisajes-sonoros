@@ -6,10 +6,8 @@ Pipeline de datos que procesa grabaciones de campo de la Reserva Natural El Sile
 
 ## Preparación
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-bash scripts/descargar_metadatos.sh
-bash scripts/listar_archivos.sh
-bash scripts/descargar_muestra.sh   # 16 audios (~8 MB) para desarrollo local
+uv sync
+uv run bash scripts/descargar_metadatos.sh
+uv run bash scripts/listar_archivos.sh
+uv run bash scripts/descargar_muestra.sh   # 16 audios (~8 MB) para desarrollo local
 ```

@@ -4,8 +4,8 @@
 #   - lista_archivos_completa.txt : todos los archivos (nombre y tamaño en bytes)
 #   - soundscapes_disponibles.txt : solo los de train_soundscapes/
 #
-# Uso (desde la carpeta del proyecto, con el entorno activado):
-#   bash scripts/listar_archivos.sh
+# Uso (desde la carpeta del proyecto):
+#   uv run bash scripts/listar_archivos.sh
 
 set -euo pipefail
 

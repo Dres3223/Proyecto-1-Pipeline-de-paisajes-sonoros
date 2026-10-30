@@ -1,0 +1,20 @@
+[project]
+name = "soundscape-data-pipeline"
+version = "0.1.0"
+description = "Data pipeline for field recordings from El Silencio Nature Reserve (Colombia)."
+readme = "README.md"
+authors = [{ name = "Rodrigo Andrés Martínez" }]
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "kaggle>=2.2.5",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.6,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "soundscape"

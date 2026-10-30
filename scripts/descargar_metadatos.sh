@@ -2,8 +2,8 @@
 # Descarga la lista de archivos y los metadatos de BirdCLEF+ 2025.
 # No descarga audio: eso lo hace un script aparte con un subconjunto controlado.
 #
-# Uso (desde la carpeta del proyecto, con el entorno activado):
-#   bash scripts/descargar_metadatos.sh
+# Uso (desde la carpeta del proyecto):
+#   uv run bash scripts/descargar_metadatos.sh
 
 set -euo pipefail
 
@@ -14,8 +14,8 @@ ARCHIVOS=("train.csv" "taxonomy.csv" "recording_location.txt")
 # 1. Comprobaciones previas
 if ! command -v kaggle >/dev/null 2>&1; then
   echo "ERROR: no encuentro el comando 'kaggle'."
-  echo "Activa el entorno con: source .venv/bin/activate"
-  echo "y luego instala con:   pip install -r requirements.txt"
+  echo "Instala las dependencias con: uv sync"
+  echo "y ejecuta el script con:      uv run bash scripts/descargar_metadatos.sh"
   exit 1
 fi
 

@@ -2,8 +2,8 @@
 # Descarga la muestra fija de paisajes sonoros para desarrollo local.
 # La lista de audios está en scripts/muestra_desarrollo.txt (16 audios, ~8 MB).
 #
-# Uso (desde la carpeta del proyecto, con el entorno activado):
-#   bash scripts/descargar_muestra.sh
+# Uso (desde la carpeta del proyecto):
+#   uv run bash scripts/descargar_muestra.sh
 
 set -euo pipefail
 
@@ -14,7 +14,8 @@ DESTINO="data/raw/birdclef/train_soundscapes"
 # 1. Comprobaciones previas
 if ! command -v kaggle >/dev/null 2>&1; then
   echo "ERROR: no encuentro el comando 'kaggle'."
-  echo "Activa el entorno con: source .venv/bin/activate"
+  echo "Instala las dependencias con: uv sync"
+  echo "y ejecuta el script con:      uv run bash scripts/descargar_muestra.sh"
   exit 1
 fi
 
