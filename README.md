@@ -15,7 +15,7 @@ flowchart LR
 
     subgraph s3["Object storage: S3 API (RustFS locally, AWS S3 later)"]
         raw[("raw/<br/>audio .ogg")]
-        parquet[("features/<br/>Parquet")]:::planned
+        parquet[("features/<br/>Parquet")]
     end
 
     subgraph pg["PostgreSQL"]
@@ -25,7 +25,7 @@ flowchart LR
     end
 
     ingest["ingest<br/>Python"]
-    features["features<br/>librosa"]:::planned
+    features["features<br/>librosa"]
     load["load"]:::planned
     dbt["dbt"]:::planned
     dashboard["Dashboard"]:::planned
@@ -35,7 +35,9 @@ flowchart LR
     xenocanto -.-> ingest
     ingest --> raw
     ingest --> recordings
-    raw -.-> features -.-> parquet -.-> load -.-> staging
+    raw --> features --> parquet
+    recordings --> features
+    parquet -.-> load -.-> staging
     recordings -.-> dbt
     staging -.-> dbt -.-> marts -.-> dashboard
     airflow -. orchestrates .-> ingest & features & load & dbt
@@ -48,7 +50,7 @@ Solid lines and boxes are built; dashed ones are planned.
 | Stage | Status | What it does |
 |---|---|---|
 | Ingest | ✅ Built | Uploads raw audio to S3 and registers its metadata in Postgres (idempotent by SHA-256) |
-| Features | Planned (E2) | Extracts audio features with librosa and writes partitioned Parquet |
+| Features | ✅ Built | Extracts audio features with librosa and writes Parquet partitioned by site and month |
 | Load | Planned (E3) | Loads features from Parquet into Postgres staging |
 | dbt | Planned (E4) | Staging and mart models with data quality tests |
 | Dashboard | Planned (E4) | Soundscape by site and period |
@@ -100,7 +102,16 @@ The ingestion is idempotent: re-running it skips recordings already registered
 (by SHA-256). Files land in `s3://soundscape/raw/<source>/site=<site>/date=<date>/`
 and their metadata in the `raw.recordings` table.
 
-### 6. Verify
+### 6. Extract audio features
+```bash
+uv run python -m soundscape.features   # write features to S3 as Parquet
+```
+One row per recording (MFCC, spectral centroid and bandwidth, RMS,
+zero-crossing rate), partitioned in `s3://soundscape/features/site=<site>/month=<YYYY-MM>/`.
+Recordings that cannot be decoded go to `features_failed/`.
+Columns, types and units: [docs/features_schema.md](docs/features_schema.md).
+
+### 7. Verify
 ```bash
 docker compose exec postgres psql -U soundscape -d soundscape \
   -c "SELECT site_code, recorded_at, duration_s FROM raw.recordings ORDER BY recorded_at LIMIT 5;"

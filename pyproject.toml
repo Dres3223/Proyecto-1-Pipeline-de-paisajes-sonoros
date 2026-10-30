@@ -11,12 +11,14 @@ dependencies = [
     "boto3>=1.43.123",
     "librosa>=1.0.0",
     "psycopg[binary]>=3.3.6",
+    "pyarrow>=26.0.0",
     "pydantic-settings>=2.16.2",
     "soundfile>=0.14.0",
 ]
 
 [dependency-groups]
 dev = [
+    "duckdb>=2.0.0",
     "kaggle>=2.2.5",
     "pre-commit>=4.7.0",
     "pytest>=9.2.0",

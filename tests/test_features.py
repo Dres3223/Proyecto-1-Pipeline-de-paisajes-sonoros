@@ -32,12 +32,11 @@ def test_tone_features():
     assert result.features["rms_mean"] > 0
 
 
-def test_n_mfcc_sets_the_number_of_columns():
+def test_n_mfcc_sets_the_length_of_the_lists():
     result = analyze(encode(tone(1000, 1)), SAMPLE_RATE, n_mfcc=13)
 
-    mfcc_columns = [name for name in result.features if name.startswith("mfcc_")]
-    assert len(mfcc_columns) == 13 * 2  # mean and std per coefficient
-    assert "mfcc_13_std" in result.features
+    assert len(result.features["mfcc_mean"]) == 13
+    assert len(result.features["mfcc_std"]) == 13
 
 
 def test_other_sample_rate_is_resampled():

@@ -7,14 +7,23 @@ Each recording is read from S3 into memory and summarised as one row of
 numbers: MFCC (mean and std per coefficient), spectral centroid and
 bandwidth, RMS energy, zero-crossing rate and duration. A damaged or empty
 file is reported as failed instead of stopping the batch.
+
+Results are written to S3 as Parquet (schema: docs/features_schema.md):
+    features/site=<site>/month=<YYYY-MM>/features.parquet
+    features_failed/failed.parquet
+Each run rewrites those files whole, so re-running gives the same result.
 """
 
 import io
 import logging
+from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 
 import librosa
 import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
 import soundfile as sf
 from psycopg.rows import dict_row
 from pydantic import ValidationError
@@ -24,32 +33,63 @@ from soundscape.storage import pg_connect, s3_client
 
 log = logging.getLogger("soundscape.features")
 
+# Fixed schema: n_mfcc changes the length of the lists, not the columns
+FEATURES_SCHEMA = pa.schema(
+    [
+        ("sha256", pa.string()),
+        ("file_name", pa.string()),
+        ("site_code", pa.string()),
+        ("recorded_at", pa.timestamp("s")),
+        ("duration_s", pa.float32()),
+        ("mfcc_mean", pa.list_(pa.float32())),
+        ("mfcc_std", pa.list_(pa.float32())),
+        ("spectral_centroid_hz", pa.float32()),
+        ("spectral_bandwidth_hz", pa.float32()),
+        ("rms_mean", pa.float32()),
+        ("zcr_mean", pa.float32()),
+        ("sample_rate_hz", pa.int32()),
+        ("n_mfcc", pa.int16()),
+        ("extracted_at", pa.timestamp("us", tz="UTC")),
+    ]
+)
+
+FAILED_SCHEMA = pa.schema(
+    [
+        ("sha256", pa.string()),
+        ("file_name", pa.string()),
+        ("s3_key", pa.string()),
+        ("error", pa.string()),
+        ("extracted_at", pa.timestamp("us", tz="UTC")),
+    ]
+)
+
+FAILED_KEY = "features_failed/failed.parquet"
+
 
 @dataclass
 class FeatureResult:
     """Outcome for one recording: its features, or why they could not be computed."""
 
     status: str  # "ok" or "failed"
-    features: dict[str, float] = field(default_factory=dict)
+    features: dict = field(default_factory=dict)
     error: str | None = None
 
 
 def extract_features(audio: np.ndarray, sample_rate: int, n_mfcc: int) -> dict:
-    """Summarise a mono signal as a flat dict of features (one value per column)."""
-    features = {"duration_s": round(len(audio) / sample_rate, 3)}
-
+    """Summarise a mono signal as a dict of features (one entry per column)."""
     mfcc = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=n_mfcc)
-    for i, coefficient in enumerate(mfcc, start=1):
-        features[f"mfcc_{i:02d}_mean"] = float(coefficient.mean())
-        features[f"mfcc_{i:02d}_std"] = float(coefficient.std())
-
     centroid = librosa.feature.spectral_centroid(y=audio, sr=sample_rate)
     bandwidth = librosa.feature.spectral_bandwidth(y=audio, sr=sample_rate)
-    features["spectral_centroid_hz"] = float(centroid.mean())
-    features["spectral_bandwidth_hz"] = float(bandwidth.mean())
-    features["rms_mean"] = float(librosa.feature.rms(y=audio).mean())
-    features["zcr_mean"] = float(librosa.feature.zero_crossing_rate(audio).mean())
-    return features
+    return {
+        "duration_s": round(len(audio) / sample_rate, 3),
+        # One value per coefficient, averaged over time
+        "mfcc_mean": mfcc.mean(axis=1).tolist(),
+        "mfcc_std": mfcc.std(axis=1).tolist(),
+        "spectral_centroid_hz": float(centroid.mean()),
+        "spectral_bandwidth_hz": float(bandwidth.mean()),
+        "rms_mean": float(librosa.feature.rms(y=audio).mean()),
+        "zcr_mean": float(librosa.feature.zero_crossing_rate(audio).mean()),
+    }
 
 
 def analyze(data: bytes, sample_rate: int, n_mfcc: int) -> FeatureResult:
@@ -67,8 +107,60 @@ def analyze(data: bytes, sample_rate: int, n_mfcc: int) -> FeatureResult:
     return FeatureResult("ok", extract_features(audio, sample_rate, n_mfcc))
 
 
+def partition_key(site_code: str, recorded_at: datetime) -> str:
+    """Hive-style partition by site and month (~87 rows each on the full data)."""
+    return f"features/site={site_code}/month={recorded_at:%Y-%m}/features.parquet"
+
+
+def build_tables(
+    results: list[tuple[dict, FeatureResult]],
+    sample_rate: int,
+    n_mfcc: int,
+    extracted_at: datetime,
+) -> tuple[dict[str, pa.Table], pa.Table]:
+    """Group results into one table per partition, plus a table of failures."""
+    partitions = defaultdict(list)
+    failed = []
+    for recording, result in results:
+        if result.status == "ok":
+            row = {
+                "sha256": recording["sha256"],
+                "file_name": recording["file_name"],
+                "site_code": recording["site_code"],
+                "recorded_at": recording["recorded_at"],
+                **result.features,
+                "sample_rate_hz": sample_rate,
+                "n_mfcc": n_mfcc,
+                "extracted_at": extracted_at,
+            }
+            key = partition_key(recording["site_code"], recording["recorded_at"])
+            partitions[key].append(row)
+        else:
+            failed.append(
+                {
+                    "sha256": recording["sha256"],
+                    "file_name": recording["file_name"],
+                    "s3_key": recording["s3_key"],
+                    "error": result.error,
+                    "extracted_at": extracted_at,
+                }
+            )
+
+    tables = {
+        key: pa.Table.from_pylist(rows, schema=FEATURES_SCHEMA)
+        for key, rows in partitions.items()
+    }
+    return tables, pa.Table.from_pylist(failed, schema=FAILED_SCHEMA)
+
+
+def put_parquet(s3, bucket: str, key: str, table: pa.Table) -> None:
+    buffer = io.BytesIO()
+    pq.write_table(table, buffer)
+    s3.put_object(Bucket=bucket, Key=key, Body=buffer.getvalue())
+
+
 def run(settings: Settings) -> list[tuple[dict, FeatureResult]]:
-    """Analyze every registered recording; return (catalog row, result) pairs."""
+    """Analyze every registered recording and write the results to S3."""
     s3 = s3_client(settings)
 
     # raw.recordings is the catalog: only ingested files are processed (lineage)
@@ -94,6 +186,18 @@ def run(settings: Settings) -> list[tuple[dict, FeatureResult]]:
         else:
             log.warning("Failed %s: %s", recording["file_name"], result.error)
         results.append((recording, result))
+
+    tables, failed = build_tables(
+        results,
+        settings.features_sample_rate,
+        settings.features_n_mfcc,
+        extracted_at=datetime.now(UTC),
+    )
+    for key, table in tables.items():
+        put_parquet(s3, settings.s3_bucket, key, table)
+        log.info("Wrote %d rows to s3://%s/%s", table.num_rows, settings.s3_bucket, key)
+    # Always written, even empty, so the latest run's failures are what it shows
+    put_parquet(s3, settings.s3_bucket, FAILED_KEY, failed)
     return results
 
 
