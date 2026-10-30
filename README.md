@@ -11,4 +11,5 @@ source .venv/bin/activate
 pip install -r requirements.txt
 bash scripts/descargar_metadatos.sh
 bash scripts/listar_archivos.sh
+bash scripts/descargar_muestra.sh   # 16 audios (~8 MB) para desarrollo local
 ```

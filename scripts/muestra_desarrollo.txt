@@ -1,0 +1,20 @@
+# Muestra fija de paisajes sonoros para desarrollo local (16 audios, ~8 MB).
+# 8 franjas de 3 horas x 2 sitios distintos, fechas del 20 abr al 21 may 2023.
+# Incluye sitios con código irregular: O201, O203, H8749, H8920.
+# Formato del nombre: SITIO_YYYYMMDD_HHMMSS.ogg
+H02_20230422_014500.ogg
+O201_20230512_011500.ogg
+H16_20230516_033500.ogg
+H08_20230507_055000.ogg
+H24_20230515_070500.ogg
+H8749_20230427_084000.ogg
+H63_20230505_090500.ogg
+H37_20230520_104500.ogg
+H77_20230420_121000.ogg
+H8920_20230501_130000.ogg
+H90_20230501_154000.ogg
+H98_20230510_172500.ogg
+H12_20230506_190000.ogg
+O203_20230430_200500.ogg
+H29_20230521_211500.ogg
+H85_20230516_221000.ogg
