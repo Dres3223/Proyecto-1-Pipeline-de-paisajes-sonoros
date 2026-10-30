@@ -26,7 +26,7 @@ s3://soundscape/
 | `sha256` | string | | Content hash of the audio file; links to `raw.recordings` |
 | `file_name` | string | | Original file name |
 | `site_code` | string | | Recording site, e.g. `H02` |
-| `recorded_at` | timestamp (s) | local time | Start of the recording, from the file name |
+| `recorded_at` | timestamp (ms) | local time | Start of the recording, from the file name |
 | `duration_s` | float32 | seconds | Length of the decoded audio |
 | `mfcc_mean` | list\<float32\> | dimensionless | Mean of each MFCC over time; `n_mfcc` values |
 | `mfcc_std` | list\<float32\> | dimensionless | Standard deviation of each MFCC over time; `n_mfcc` values |

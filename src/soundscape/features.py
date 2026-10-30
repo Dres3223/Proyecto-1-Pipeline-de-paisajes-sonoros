@@ -39,7 +39,8 @@ FEATURES_SCHEMA = pa.schema(
         ("sha256", pa.string()),
         ("file_name", pa.string()),
         ("site_code", pa.string()),
-        ("recorded_at", pa.timestamp("s")),
+        # Parquet has no seconds unit: "s" would be read back as "ms"
+        ("recorded_at", pa.timestamp("ms")),
         ("duration_s", pa.float32()),
         ("mfcc_mean", pa.list_(pa.float32())),
         ("mfcc_std", pa.list_(pa.float32())),
