@@ -10,6 +10,8 @@ dependencies = []
 [dependency-groups]
 dev = [
     "kaggle>=2.2.5",
+    "pre-commit>=4.7.0",
+    "ruff>=0.17.3",
 ]
 
 [build-system]
@@ -18,3 +20,11 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "soundscape"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+# E/F: errores básicos · I: orden de imports · UP: sintaxis moderna · B: bugs comunes
+select = ["E", "F", "I", "UP", "B"]

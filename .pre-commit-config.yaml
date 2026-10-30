@@ -1,0 +1,29 @@
+# Hooks que se ejecutan en cada `git commit`.
+# Instalación (una sola vez): uv run pre-commit install
+# Revisar todo el repo:       uv run pre-commit run --all-files
+repos:
+  # Limpieza básica de archivos
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      # Un audio de BirdCLEF pesa ~470 KB: con 300 KB ninguno se cuela al repo
+      - id: check-added-large-files
+        args: ["--maxkb=300"]
+
+  # Python: linter y formateador (misma versión que en pyproject.toml)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+      - id: ruff-format
+
+  # Bash: errores típicos en los scripts
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1-1
+    hooks:
+      - id: shellcheck
