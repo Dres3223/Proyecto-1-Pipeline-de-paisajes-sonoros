@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from pydantic import SecretStr
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,3 +28,9 @@ class Settings(BaseSettings):
     # Ingestion
     ingest_source_dir: Path = Path("data/raw/birdclef/train_soundscapes")
     ingest_source_name: str = "birdclef-2025"
+
+    @field_validator("s3_endpoint_url", mode="before")
+    @classmethod
+    def empty_endpoint_means_aws(cls, value: str | None) -> str | None:
+        """S3_ENDPOINT_URL= (empty) selects AWS S3 instead of a local endpoint."""
+        return value or None
