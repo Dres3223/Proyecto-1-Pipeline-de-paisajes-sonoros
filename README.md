@@ -11,7 +11,20 @@ uv run pre-commit install   # enable the git hooks (once)
 uv run bash scripts/download_metadata.sh
 uv run bash scripts/list_files.sh
 uv run bash scripts/download_sample.sh   # 16 recordings (~8 MB) for local development
+
+cp .env.example .env    # then replace the placeholder secrets
+docker compose up -d    # start PostgreSQL and RustFS
+docker compose ps       # both services should be "healthy"
 ```
+
+| Service | URL | Purpose |
+|---|---|---|
+| PostgreSQL 18 | `localhost:5432` | Recording metadata and audio features |
+| RustFS (S3 API) | `http://localhost:9000` | Raw audio files (S3-compatible object storage) |
+| RustFS console | http://localhost:9001/rustfs/console/ | Browse buckets in the browser |
+
+Stop the services with `docker compose down`; data is kept in Docker volumes.
+Why RustFS instead of MinIO: [ADR 0001](docs/adr/0001-s3-compatible-storage.md).
 
 ## License
 The code is released under the [MIT](LICENSE) license.
