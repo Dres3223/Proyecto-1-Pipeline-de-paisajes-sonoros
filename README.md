@@ -24,6 +24,15 @@ docker compose ps       # both services should be "healthy"
 | RustFS console | http://localhost:9001/rustfs/console/ | Browse buckets in the browser |
 
 Stop the services with `docker compose down`; data is kept in Docker volumes.
+
+## Ingest
+```bash
+uv run python -m soundscape.ingest   # upload recordings to S3 and register them in Postgres
+uv run pytest                        # run the tests
+```
+The ingestion is idempotent: re-running it skips recordings already registered
+(by SHA-256). Files land in `s3://soundscape/raw/<source>/site=<site>/date=<date>/`
+and their metadata in the `raw.recordings` table.
 Why RustFS instead of MinIO: [ADR 0001](docs/adr/0001-s3-compatible-storage.md).
 
 ## License
