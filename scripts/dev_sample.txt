@@ -1,7 +1,7 @@
-# Muestra fija de paisajes sonoros para desarrollo local (16 audios, ~8 MB).
-# 8 franjas de 3 horas x 2 sitios distintos, fechas del 20 abr al 21 may 2023.
-# Incluye sitios con código irregular: O201, O203, H8749, H8920.
-# Formato del nombre: SITIO_YYYYMMDD_HHMMSS.ogg
+# Fixed soundscape sample for local development (16 recordings, ~8 MB).
+# 8 three-hour bands x 2 different sites, dates from 20 Apr to 21 May 2023.
+# Includes sites with irregular codes: O201, O203, H8749, H8920.
+# File name format: SITE_YYYYMMDD_HHMMSS.ogg
 H02_20230422_014500.ogg
 O201_20230512_011500.ogg
 H16_20230516_033500.ogg

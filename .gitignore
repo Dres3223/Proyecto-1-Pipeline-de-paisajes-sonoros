@@ -1,50 +1,50 @@
-# Datos: nunca se suben al repositorio (pesan mucho y tienen licencia propia)
+# Data: never committed (large files with their own license)
 data/
 
-# Audio en cualquier carpeta (segunda protección por si alguno queda fuera de data/)
+# Audio in any folder (second safeguard in case a file ends up outside data/)
 *.ogg
 *.wav
 *.mp3
 *.flac
 
-# Entorno de Python
+# Python environment
 .venv/
 __pycache__/
 *.pyc
 
-# Cachés de herramientas (pytest, ruff, coverage)
+# Tool caches (pytest, ruff, coverage)
 .pytest_cache/
 .ruff_cache/
 .coverage
 htmlcov/
 
-# Builds del paquete (uv build)
+# Package builds (uv build)
 dist/
 build/
 *.egg-info/
 
-# Credenciales
+# Credentials
 kaggle.json
 access_token
 .env
 .env.*
 !.env.example
 
-# Airflow: logs de ejecución
+# Airflow: run logs
 logs/
 
-# dbt: archivos compilados, paquetes descargados y logs
+# dbt: compiled files, downloaded packages and logs
 dbt/target/
 dbt/dbt_packages/
 dbt/logs/
 
-# Terraform: el state y los .tfvars pueden contener contraseñas y llaves de AWS
+# Terraform: state and .tfvars files may contain passwords and AWS keys
 .terraform/
 *.tfstate
 *.tfstate.*
 *.tfvars
 
-# Editores
+# Editors
 .vscode/
 .idea/
 

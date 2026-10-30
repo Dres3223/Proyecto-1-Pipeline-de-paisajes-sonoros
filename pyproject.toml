@@ -28,5 +28,5 @@ line-length = 88
 target-version = "py312"
 
 [tool.ruff.lint]
-# E/F: errores básicos · I: orden de imports · UP: sintaxis moderna · B: bugs comunes
+# E/F: basic errors · I: import order · UP: modern syntax · B: common bugs
 select = ["E", "F", "I", "UP", "B"]

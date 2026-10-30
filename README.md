@@ -1,19 +1,19 @@
-# Pipeline de paisajes sonoros
+# Soundscape Data Pipeline
 
-Pipeline de datos que procesa grabaciones de campo de la Reserva Natural El Silencio (Colombia).
+Data pipeline that processes field recordings from El Silencio Nature Reserve (Colombia).
 
-> Proyecto en construcción. Fuente de datos y decisiones: [docs/fuente_de_datos.md](docs/fuente_de_datos.md)
+> Work in progress. Data source and decisions: [docs/data_source.md](docs/data_source.md)
 
-## Preparación
+## Setup
 ```bash
 uv sync
-uv run pre-commit install   # activa los hooks de git (una sola vez)
-uv run bash scripts/descargar_metadatos.sh
-uv run bash scripts/listar_archivos.sh
-uv run bash scripts/descargar_muestra.sh   # 16 audios (~8 MB) para desarrollo local
+uv run pre-commit install   # enable the git hooks (once)
+uv run bash scripts/download_metadata.sh
+uv run bash scripts/list_files.sh
+uv run bash scripts/download_sample.sh   # 16 recordings (~8 MB) for local development
 ```
 
-## Licencia
-El código está bajo licencia [MIT](LICENSE).
+## License
+The code is released under the [MIT](LICENSE) license.
 
-Los datos **no** forman parte de este repositorio ni de esa licencia: el dataset BirdCLEF+ 2025 conserva su propia licencia [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) (uso no comercial, citando la fuente). El pipeline los descarga directamente desde Kaggle.
+The data is **not** part of this repository nor covered by that license: the BirdCLEF+ 2025 dataset keeps its own [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) license (non-commercial use, with attribution). The pipeline downloads it directly from Kaggle.
