@@ -15,14 +15,13 @@ from datetime import datetime
 from importlib.resources import files
 from pathlib import Path
 
-import boto3
 import psycopg
 import soundfile as sf
-from botocore.config import Config
 from botocore.exceptions import ClientError
 from pydantic import ValidationError
 
 from soundscape.config import Settings
+from soundscape.storage import pg_connect, s3_client
 
 log = logging.getLogger("soundscape.ingest")
 
@@ -84,25 +83,11 @@ def run(settings: Settings) -> dict[str, int]:
     if not source_dir.is_dir():
         raise FileNotFoundError(f"source folder not found: {source_dir}")
 
-    s3 = boto3.client(
-        "s3",
-        endpoint_url=settings.s3_endpoint_url,
-        region_name=settings.s3_region,
-        aws_access_key_id=settings.s3_access_key,
-        aws_secret_access_key=settings.s3_secret_key.get_secret_value(),
-        # RustFS only supports path-style addressing (see ADR 0001)
-        config=Config(s3={"addressing_style": "path"}),
-    )
+    s3 = s3_client(settings)
     ensure_bucket(s3, settings.s3_bucket)
 
-    with psycopg.connect(
-        host=settings.postgres_host,
-        port=settings.postgres_port,
-        user=settings.postgres_user,
-        password=settings.postgres_password.get_secret_value(),
-        dbname=settings.postgres_db,
-        autocommit=True,  # each inserted row is committed on its own
-    ) as conn:
+    # autocommit: each inserted row is committed on its own
+    with pg_connect(settings, autocommit=True) as conn:
         ensure_schema(conn)
         rows = conn.execute("SELECT sha256, file_name FROM raw.recordings").fetchall()
         known_hashes = {sha for sha, _ in rows}
