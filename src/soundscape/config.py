@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from pydantic import SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     # Ingestion
     ingest_source_dir: Path = Path("data/raw/birdclef/train_soundscapes")
     ingest_source_name: str = "birdclef-2025"
+
+    # Feature extraction: keep the native 32 kHz so sounds up to 16 kHz survive
+    features_sample_rate: int = Field(default=32000, gt=0)
+    features_n_mfcc: int = Field(default=20, gt=0)
 
     @field_validator("s3_endpoint_url", mode="before")
     @classmethod
