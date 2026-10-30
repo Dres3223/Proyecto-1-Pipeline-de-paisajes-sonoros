@@ -112,7 +112,16 @@ def run(settings: Settings) -> dict[str, int]:
                 counts["rejected"] += 1
                 continue
 
-            info = sf.info(path)
+            try:
+                info = sf.info(path)
+            except sf.LibsndfileError as error:
+                # A damaged file must not stop the batch, nor reach the raw layer
+                log.warning(
+                    "Rejected %s: cannot read audio (%s)", path.name, error.error_string
+                )
+                counts["rejected"] += 1
+                continue
+
             key = build_s3_key(settings.ingest_source_name, name, path.name)
 
             # Upload first, then register: the row is the "done" marker
